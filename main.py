@@ -3,6 +3,7 @@
 Usage: main.py [-h | --help] [-v | --verbose] [options]
 
 Options:
+    -f FILENAME --filename=FILENAME                         Items Filename (.YML) [default: items.yml]
 
     -w WEIGHT --max-weight=WEIGHT                           Max weight capacity for the surival bag [default: 20]
     -n NB_INDIVIDUALS --nb-individuals=NB_INDIVIDUALS       Number of individuals [default: 1]
@@ -11,35 +12,27 @@ Options:
     -e ELITE_RATE --elite-rate=ELITE_RATE                   Elite rate (between 0 and 1) [default: 0.3]
     -p PICK_RATE --pick-rate=PICK_RATE                      Pick rate (between 0 and 1) [default: 0.5]
 
-    --mode=MODE                                             Choose a mode (genetic_algorithm is the only option, for the moment...) [default: genetic_algorithm]
+    --mode=MODE                                             Mode (only genetic_algorithm, for the moment) [default: genetic_algorithm]
 
     -v --verbose                                            Activate verbose
 
     -h --help                                               Print this help
 """
 
+import yaml
 import survival_bag_optimizer
 from docopt import docopt
 
-items = {
-    "raincoat": {"value": 5, "weight": 2},
-    "pocket knife": {"value": 3, "weight": 1},
-    "mineral water": {"value": 15, "weight": 5},
-    "gloves": {"value": 5, "weight": 1},
-    "sleeping bag": {"value": 6, "weight": 4},
-    "tent": {"value": 18, "weight": 9},
-    "portable stove": {"value": 8, "weight": 5},
-    "canned food": {"value": 20, "weight": 4},
-    "tekyn dev laws": {"value": 30, "weight": 5},
-    "snacks": {"value": 8, "weight": 3},
-    "compass": {"value": 5, "weight": 2},
-    "lighter": {"value": 10, "weight" : 1},
-    "rope": {"value": 4, "weight": 4},
-    "flash light": {"value": 7, "weight": 3},
-
+def main_genetic_programming(items, args):
+    parameters = {
+        "nb_individuals": int(args["--nb-individuals"]),
+        "nb_generations": int(args["--nb-generations"]),
+        "mutation_rate": float(args["--mutation-rate"]),
+        "nb_repetitions": float(args["--nb-repetitions"]),
+        "elite_percentage": float(args["--elite-rate"]),
 }
 
-def main_genetic_algo(args):
+def main_genetic_algo(items, args):
     parameters = {
         "nb_individuals": int(args["--nb-individuals"]),
         "nb_generations": int(args["--nb-generations"]),
@@ -52,5 +45,12 @@ def main_genetic_algo(args):
 
 if __name__ == '__main__':
     args = docopt(__doc__, version="Genetic Algorithm")
-    if args["--mode"] == "genetic_algorithm":
-        main_genetic_algo(args)
+    try:
+        with open(args["--filename"]) as items_file:
+            items = yaml.safe_load(items_file)
+        if args["--mode"] == "genetic_algorithm":
+            main_genetic_algo(items, args)
+    except FileNotFoundError as e:
+        print(f"Error: '{args['--filename']}' file does not exist.")
+    except yaml.parser.ParserError as e:
+        print(f"Error: Can't parse '{args['--filename']}' file, {e.problem}.")
