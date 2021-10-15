@@ -42,7 +42,7 @@ class SurvivalBagOptimizer:
                     current_fitness += self._items[item_name]["value"]
                     current_weight += self._items[item_name]["weight"]
             if current_weight > self._max_weight:
-                current_fitness = 0
+                current_fitness = 1
             self._fitnesses.append(current_fitness)
         if self.verbose:
             self.get_best_fitness()
@@ -66,7 +66,10 @@ class SurvivalBagOptimizer:
     def _tournament_selection(self):
         if self._nb_individuals > 2:
             sum_fitnesses = sum(self._fitnesses)
-            selection_probabilities = [fitness / sum_fitnesses for fitness in self._fitnesses]
+            if sum_fitnesses != 0:
+                selection_probabilities = [fitness / sum_fitnesses for fitness in self._fitnesses]
+            else:
+                selection_probabilities = [1 / self._nb_individuals for _ in range(self._nb_individuals)]
             first_individual_idx = np.random.choice(range(self._nb_individuals), p=selection_probabilities)
             second_individual_idx = first_individual_idx
             while second_individual_idx == first_individual_idx:
