@@ -1,4 +1,6 @@
 import random
+import numpy as np
+import matplotlib.pyplot as plt
 
 class SurvivalBagOptimizer:
     def __init__(self, items, max_weight, parameters, verbose=False):
@@ -14,6 +16,7 @@ class SurvivalBagOptimizer:
 
         self._population = []
         self._fitnesses = []
+        self._best_fitness_per_generation = []
 
         self.verbose = verbose
 
@@ -135,6 +138,7 @@ class SurvivalBagOptimizer:
             print(f"--- Start Generation 1 ---")
         self._init_population()
         self._compute_fitnesses()
+        self._best_fitness_per_generation.append(max(self._fitnesses))
         if self.verbose:
             print(f"--- End Generation 1 ---\n")
         for generation_idx in range(self._nb_generations - 1):
@@ -143,6 +147,19 @@ class SurvivalBagOptimizer:
             self._crossover()
             self._mutation()
             self._compute_fitnesses()
+            self._best_fitness_per_generation.append(max(self._fitnesses))
             if self.verbose:
                 print(f"--- End Generation {generation_idx + 2} ---\n")
+
+    def display_graph(self):
+        generations_ids = range(1, self._nb_generations + 1)
+        x = np.array(generations_ids)
+        y = np.array(self._best_fitness_per_generation)
+
+        plt.title("Best fitness per generation")
+        plt.plot(x, y)
+        plt.xlabel("Generations")
+        plt.ylabel("Best fitness")
+        plt.show()
+
 
