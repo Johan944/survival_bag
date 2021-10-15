@@ -56,20 +56,25 @@ class SurvivalBagOptimizer:
             while len(elites) < nb_individuals_to_keep:
                 best_fitness = -1
                 best_individual = None
-                best_idx = 0
-                idx = 0
                 for fitness, individual in zip(self._fitnesses, self._population):
                     if fitness > best_fitness:
                         best_fitness = fitness
                         best_individual = individual
-                        best_idx = idx
-                    idx += 1
-
                 elites.append(best_individual)
-                del self._population[best_idx]
-                del self._fitnesses[best_idx]
-                idx += 1
         return elites
+
+    def _tournament_selection(self):
+        if self._nb_individuals > 2:
+            sum_fitnesses = sum(self._fitnesses)
+            selection_probabilities = [fitness / sum_fitnesses for fitness in self._fitnesses]
+            first_individual_idx = np.random.choice(range(self._nb_individuals), p=selection_probabilities)
+            second_individual_idx = first_individual_idx
+            while second_individual_idx == first_individual_idx:
+                second_individual_idx = np.random.choice(self._nb_individuals, p=selection_probabilities)
+        elif self._nb_individuals == 2:
+            first_individual_idx = 0
+            second_individual_idx = 1
+        return self._population[first_individual_idx], self._population[second_individual_idx]
 
     def _crossover(self):
         if self.verbose:
@@ -79,16 +84,10 @@ class SurvivalBagOptimizer:
             if self.verbose:
                 print("Number of elites choosen: ", len(elites))
 
-            past_population = self._population + elites
             new_population = elites
 
             while len(new_population) < self._nb_individuals:
-                first_parent_idx = random.randint(0, self._nb_individuals - 1)
-                second_parent_idx = first_parent_idx
-                while second_parent_idx == first_parent_idx:
-                    second_parent_idx = random.randint(0, self._nb_individuals - 1)
-                first_individual = past_population[first_parent_idx]
-                second_individual = past_population[second_parent_idx]
+                first_individual, second_individual = self._tournament_selection()
 
                 child = []
                 cut_idx = random.randint(1, self._nb_items - 1)
