@@ -1,6 +1,7 @@
-from math import e
 import random
 import time
+import numpy as np
+import matplotlib.pyplot as plt
 import survival_bag_optimizer
 
 class OptimizeSurvivalBagOptimizer:
@@ -16,6 +17,7 @@ class OptimizeSurvivalBagOptimizer:
 
         self._population = []
         self._fitnesses = []
+        self._best_fitness_per_generation = []
 
         self.verbose = verbose
 
@@ -39,18 +41,24 @@ class OptimizeSurvivalBagOptimizer:
         if self.verbose:
             print("Compute fitnesses.")
         self._fitnesses = []
+        best_fitness = -1
         for individual in self._population:
             sum_fitness = 0
             sum_time = 0
             current_instance = survival_bag_optimizer.SurvivalBagOptimizer(self._items, self._max_weight, individual)
             for _ in range(self._nb_repetitions):
                 start_time = time.time()
-                time.sleep(0.01)
                 current_instance.run()
                 _, current_fitness, _, _ = current_instance.get_best_fitness()
                 sum_fitness += current_fitness
                 sum_time += time.time() - start_time
-            self._fitnesses.append({"fitness": sum_fitness / sum_time, "avr_fitness": sum_fitness / self._nb_repetitions, "avr_time": sum_time / self._nb_repetitions})
+            avr_fitness = sum_fitness / self._nb_repetitions
+            if avr_fitness > best_fitness:
+                best_fitness = avr_fitness
+            self._fitnesses.append({"fitness": sum_fitness, "avr_fitness": avr_fitness, "avr_time": sum_time / self._nb_repetitions})
+        self._best_fitness_per_generation.append(best_fitness)
+        if self.verbose:
+            self.get_best_fitness()
 
     def _elite_selection(self):
         elites = []
@@ -119,7 +127,7 @@ class OptimizeSurvivalBagOptimizer:
                 random_params = self._generate_random_parameters()
                 individual[param_to_mutate] = random_params[param_to_mutate]
 
-    def _get_best_fitness(self):
+    def get_best_fitness(self):
         best_fitness = {"fitness": -1}
         best_individual = None
 
@@ -147,4 +155,14 @@ class OptimizeSurvivalBagOptimizer:
             self._compute_fitnesses()
             if self.verbose:
                 print(f"--- End Generation {generation_idx + 2} ---\n")
-        return self._get_best_fitness()
+
+    def display_graph(self):
+        generations_ids = range(1, self._nb_generations + 1)
+        x = np.array(generations_ids)
+        y = np.array(self._best_fitness_per_generation)
+
+        plt.title("Best fitness per generation")
+        plt.plot(x, y)
+        plt.xlabel("Generations")
+        plt.ylabel("Best fitness")
+        plt.show()

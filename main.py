@@ -9,7 +9,7 @@ Options:
     -n NB_INDIVIDUALS --nb-individuals=NB_INDIVIDUALS       Number of individuals [default: 1]
     -g NB_GENERATIONS --nb-generations=NB_GENERATIONS       Number of generations [default: 1]
     -m MUTATION_RATE --mutation-rate=MUTATION_RATE          Mutation rate (between 0 and 1) [default: 0.05]
-    -e ELITE_RATE --elite-rate=ELITE_RATE                   Elite rate (between 0 and 1) [default: 0.1]
+    -e ELITE_RATE --elite-rate=ELITE_RATE                   Elite rate (between 0 and 1) [default: 0.5]
     -p PICK_RATE --pick-rate=PICK_RATE                      Pick rate (between 0 and 1) [default: 0.5]
     -r NB_REPETITIONS --nb-repetitions=NB_REPETITIONS       Number of repetitions [default: 3]
 
@@ -35,6 +35,8 @@ def main_genetic_programming(items, args):
     }
     optimizer = optimize_survival_bag_optimizer.OptimizeSurvivalBagOptimizer(items=items, max_weight=int(args["--max-weight"]), parameters=parameters, verbose=args["--verbose"])
     optimizer.run()
+    if args["--graph"]:
+        optimizer.display_graph()
 
 def main_genetic_algo(items, args):
     parameters = {
